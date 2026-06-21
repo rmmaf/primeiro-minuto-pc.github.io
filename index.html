@@ -5,7 +5,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Engasgo em bebês — O que fazer · 1º Minuto (animado)</title>
-<link rel="manifest" href='data:application/json;charset=utf-8,{"name":"1º Minuto - Engasgo em Bebês","short_name":"1º Minuto","start_url":".","display":"standalone","background_color":"#f0f9fd","theme_color":"#0a4a5e","icons":[{"src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzBhNGE1ZSIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1zaXplPSI0NSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4xwqo8L3RleHQ+PC9zdmc+","sizes":"512x512","type":"image/svg+xml"}]}'>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a4a5e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="1º Minuto">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -204,6 +213,9 @@ body{
 .tb{position:fixed;right:18px;bottom:18px;z-index:50;display:flex;gap:8px}
 .tb button{font-family:"Figtree";font-weight:700;font-size:13px;border:none;border-radius:999px;padding:11px 18px;background:var(--teal-800);color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(7,45,57,.28);display:flex;align-items:center;gap:8px}
 .tb button:hover{background:var(--teal-700)}
+.tb button.install{background:var(--green)}
+.tb button.install:hover{background:#11663d}
+.tb button[hidden]{display:none}
 
 @media print{
   body{background:#fff}
@@ -428,47 +440,50 @@ body{
 
 </div>
 
-<div class="tb"><button onclick="window.print()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v6H8z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Imprimir / Salvar PDF</button></div>
+<div class="tb"><button id="installBtn" class="install" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v11m0 0l-4-4m4 4l4-4M5 20h14" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Instalar app</button><button onclick="window.print()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v6H8z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Imprimir / Salvar PDF</button></div>
 
 <template id="__bundler_thumbnail">
 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#0a4a5e"/><circle cx="50" cy="40" r="20" fill="none" stroke="#fff" stroke-width="3"/><circle cx="44" cy="38" r="6" fill="#f6d9c6"/><path d="M30 72h40" stroke="#de050b" stroke-width="5" stroke-linecap="round"/><text x="50" y="92" text-anchor="middle" fill="#8fd3ee" font-family="sans-serif" font-size="11" font-weight="700">1º Minuto</text></svg>
 </template>
 <script>
+  // Registra o service worker a partir de um arquivo real (sw.js).
+  // É isso que torna o app instalável: o navegador só oferece "Instalar"
+  // quando há um service worker válido + manifest com ícones PNG.
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      // Pega o caminho atual do arquivo para garantir que ele fará o cache do próprio HTML
-      const currentPath = window.location.pathname;
-      
-      const swCode = `
-        const CACHE_NAME = 'engasgo-bebe-v1';
-        
-        self.addEventListener('install', event => {
-          event.waitUntil(
-            caches.open(CACHE_NAME).then(cache => {
-              // Salva este próprio arquivo HTML no cache do celular
-              return cache.add('${currentPath}');
-            })
-          );
-          self.skipWaiting();
-        });
-
-        self.addEventListener('fetch', event => {
-          event.respondWith(
-            caches.match(event.request).then(response => {
-              return response || fetch(event.request);
-            })
-          );
-        });
-      `;
-
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
-
-      navigator.serviceWorker.register(swUrl)
-        .then(() => console.log('PWA configurado: Pronto para funcionar offline!'))
-        .catch(err => console.error('Erro no PWA:', err));
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('PWA: service worker registrado.'))
+        .catch((err) => console.error('PWA: falha ao registrar o service worker:', err));
     });
   }
+
+  // Botão de instalação personalizado.
+  // O evento beforeinstallprompt dispara (Chrome/Edge/Android) quando o app
+  // atende aos critérios de instalação; aí mostramos o botão "Instalar app".
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    if (installBtn) installBtn.hidden = false;
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    });
+  }
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    if (installBtn) installBtn.hidden = true;
+    console.log('PWA: app instalado!');
+  });
 </script>
 </body>
 </html>
